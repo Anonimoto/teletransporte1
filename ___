@@ -1,0 +1,170 @@
+# --[[
+  Este script cria uma GUI chamada "HEHEHE HUB" com:
+    - Um botão "Teleport to random player"
+    - Uma lista de TextButtons com os nomes dos jogadores do servidor (clicável para teleportar até o jogador)
+    - Um botão "Atualizar lista" para atualizar a lista de jogadores
+  Coloque este script em StarterGui como LocalScript, ele cria toda a interface automaticamente.
+--]]
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Cria a ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "HEHEHE HUB"
+screenGui.ResetOnSpawn = false
+
+-- Cria um Frame principal centralizado
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 310, 0, 300)
+frame.Position = UDim2.new(0.5, -155, 0.5, -150)
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.BackgroundTransparency = 0.3
+frame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+frame.Parent = screenGui
+
+-- Cria o título da HUB
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0, 28)
+titleLabel.Position = UDim2.new(0, 0, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "HEHEHE HUB"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 85)
+titleLabel.TextStrokeTransparency = 0.6
+titleLabel.TextSize = 22
+titleLabel.Font = Enum.Font.SciFi
+titleLabel.Parent = frame
+
+-- Cria o botão de teleporte aleatório
+local teleportButton = Instance.new("TextButton")
+teleportButton.Size = UDim2.new(1, -20, 0, 35)
+teleportButton.Position = UDim2.new(0, 10, 0, 36)
+teleportButton.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
+teleportButton.TextColor3 = Color3.new(1, 1, 1)
+teleportButton.TextSize = 20
+teleportButton.Font = Enum.Font.SourceSansBold
+teleportButton.Text = "Teleport to random player"
+teleportButton.Parent = frame
+
+-- Cria botão de atualizar lista de jogadores
+local updateListButton = Instance.new("TextButton")
+updateListButton.Size = UDim2.new(1, -20, 0, 26)
+updateListButton.Position = UDim2.new(0, 10, 0, 80)
+updateListButton.BackgroundColor3 = Color3.fromRGB(100, 170, 100)
+updateListButton.TextColor3 = Color3.new(1, 1, 1)
+updateListButton.TextSize = 16
+updateListButton.Font = Enum.Font.SourceSansBold
+updateListButton.Text = "Atualizar lista"
+updateListButton.Parent = frame
+
+-- Cria o título da lista de jogadores
+local playerListLabel = Instance.new("TextLabel")
+playerListLabel.Size = UDim2.new(1, -20, 0, 20)
+playerListLabel.Position = UDim2.new(0, 10, 0, 112)
+playerListLabel.BackgroundTransparency = 1
+playerListLabel.Text = "Jogadores do servidor:"
+playerListLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
+playerListLabel.TextStrokeTransparency = 0.6
+playerListLabel.TextSize = 15
+playerListLabel.Font = Enum.Font.SourceSans
+playerListLabel.TextXAlignment = Enum.TextXAlignment.Left
+playerListLabel.Parent = frame
+
+-- Cria o ScrollingFrame para a lista de jogadores
+local playerListFrame = Instance.new("ScrollingFrame")
+playerListFrame.Size = UDim2.new(1, -20, 1, -142)
+playerListFrame.Position = UDim2.new(0, 10, 0, 134)
+playerListFrame.BackgroundColor3 = Color3.fromRGB(38, 38, 58)
+playerListFrame.BackgroundTransparency = 0.2
+playerListFrame.BorderSizePixel = 0
+playerListFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+playerListFrame.ScrollBarThickness = 6
+playerListFrame.Parent = frame
+
+-- Layout para alinhar os botões na lista
+local listLayout = Instance.new("UIListLayout")
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Padding = UDim.new(0, 4)
+listLayout.Parent = playerListFrame
+
+-- Função para teleportar até um jogador
+local function teleportToPlayer(targetPlayer)
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChild("HumanoidRootPart") and targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        char.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(2,0,0)
+    end
+end
+
+-- Função para criar a lista de jogadores
+local function updatePlayerList()
+    -- Limpa a lista
+    for _, child in pairs(playerListFrame:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
+    -- Adiciona cada jogador (exceto o próprio local player)
+    local count = 0
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            count = count + 1
+            local playerButton = Instance.new("TextButton")
+            playerButton.Size = UDim2.new(1, 0, 0, 28)
+            playerButton.BackgroundColor3 = Color3.fromRGB(80, 80, 140)
+            playerButton.TextColor3 = Color3.new(1, 1, 1)
+            playerButton.TextSize = 16
+            playerButton.Font = Enum.Font.SourceSans
+            playerButton.Text = player.Name
+            playerButton.Name = player.Name .. "_Button"
+            playerButton.Parent = playerListFrame
+
+            -- Teleporta ao clicar no nome
+            playerButton.MouseButton1Click:Connect(function()
+                teleportToPlayer(player)
+            end)
+        end
+    end
+
+    -- Ajusta o tamanho do Canvas
+    playerListFrame.CanvasSize = UDim2.new(0, 0, 0, count * 32)
+end
+
+-- Inicializa a lista de jogadores
+updatePlayerList()
+
+-- Atualiza ao clicar no botão "Atualizar lista"
+updateListButton.MouseButton1Click:Connect(function()
+    updatePlayerList()
+end)
+
+-- Atualiza automaticamente ao entrar/sair alguém
+Players.PlayerAdded:Connect(updatePlayerList)
+Players.PlayerRemoving:Connect(updatePlayerList)
+
+-- Script do botão de teleporte aleatório
+teleportButton.MouseButton1Click:Connect(function()
+    -- Lista de todos os jogadores exceto o LocalPlayer
+    local allPlayers = {}
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            table.insert(allPlayers, player)
+        end
+    end
+
+    if #allPlayers == 0 then
+        teleportButton.Text = "Nenhum outro jogador!"
+        task.wait(1)
+        teleportButton.Text = "Teleport to random player"
+        return
+    end
+
+    -- Seleciona um jogador aleatório
+    local randomIndex = math.random(1, #allPlayers)
+    local chosenPlayer = allPlayers[randomIndex]
+
+    -- Teleporta o LocalPlayer para a posição do jogador escolhido
+    teleportToPlayer(chosenPlayer)
+end)
+
+-- Mostra a GUI
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
